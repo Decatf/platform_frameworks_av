@@ -550,6 +550,9 @@ status_t OMXCodec::configureCodec(const sp<MetaData> &meta) {
             CODEC_LOGI(
                     "AVC profile = %u (%s), level = %u",
                     profile, AVCProfileToString(profile), level);
+
+            mOMXProfile = profile;
+
         } else if (meta->findData(kKeyHVCC, &type, &data, &size)) {
             // Parse the HEVCDecoderConfigurationRecord
 
@@ -1455,6 +1458,7 @@ OMXCodec::OMXCodec(
     mPortStatus[kPortIndexOutput] = ENABLED;
 
     setComponentRole();
+    mOMXProfile = 0;
 }
 
 // static
@@ -2555,7 +2559,38 @@ void OMXCodec::onStateChange(OMX_STATETYPE newState) {
         {
             CODEC_LOGV("Now Idle.");
             if (mState == LOADED_TO_IDLE) {
-                status_t err = mOMX->sendCommand(
+                status_t err;
+
+                // If NVIDIA, check for available resources for AVC before allowing
+                // codec to transition to executing
+                if (!strcmp(mComponentName, "OMX.Nvidia.h264.decode") && mOMXProfile)
+                {
+                    OMX_INDEXTYPE index;
+
+                    // If getExtension fails, then we can't check resources so set ERROR state so that Init will fail.
+                    err = mOMX->getExtensionIndex(mNode, "OMX.Nvidia.index.config.checkresources", &index);
+                    if(err != OK)
+                    {
+                        setState(ERROR);
+                        break;
+                    }
+
+                    OMX_VIDEO_PARAM_PROFILELEVELTYPE ProfileHeader;
+                    memset(&ProfileHeader, 0, sizeof(ProfileHeader));
+                    InitOMXParams(&ProfileHeader);
+                    ProfileHeader.nPortIndex = kPortIndexInput;
+                    ProfileHeader.eProfile = mOMXProfile;
+
+                    // If setConfig fails, then we are out of resources so set ERROR state so that Init will fail.
+                    err = mOMX->setConfig(mNode, index, &ProfileHeader, sizeof(ProfileHeader));
+                    if(err != OK)
+                    {
+                        setState(ERROR);
+                        break;
+                    }
+                }
+
+                err = mOMX->sendCommand(
                         mNode, OMX_CommandStateSet, OMX_StateExecuting);
 
                 CHECK_EQ(err, (status_t)OK);
