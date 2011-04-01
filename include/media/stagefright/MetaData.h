@@ -181,6 +181,8 @@ enum {
 
     // H264 supplemental enhancement information offsets/sizes
     kKeySEI               = 'sei ', // raw data
+
+    kKeyNodeId            = 'node',  // int32_t
 };
 
 enum {
