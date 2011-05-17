@@ -2395,7 +2395,9 @@ void OMXCodec::onCmdComplete(OMX_COMMANDTYPE cmd, OMX_U32 data) {
             OMX_U32 portIndex = data;
             CODEC_LOGV("PORT_DISABLED(%u)", portIndex);
 
-            CHECK(mState == EXECUTING || mState == RECONFIGURING);
+            if (mState != EXECUTING && mState != RECONFIGURING) {
+                   return;
+            }
             CHECK_EQ((int)mPortStatus[portIndex], (int)DISABLING);
             CHECK_EQ(mPortBuffers[portIndex].size(), 0u);
 
@@ -2440,7 +2442,9 @@ void OMXCodec::onCmdComplete(OMX_COMMANDTYPE cmd, OMX_U32 data) {
             OMX_U32 portIndex = data;
             CODEC_LOGV("PORT_ENABLED(%u)", portIndex);
 
-            CHECK(mState == EXECUTING || mState == RECONFIGURING);
+            if (mState != EXECUTING && mState != RECONFIGURING) {
+                   return;
+            }
             CHECK_EQ((int)mPortStatus[portIndex], (int)ENABLING);
 
             mPortStatus[portIndex] = ENABLED;
