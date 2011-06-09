@@ -2396,7 +2396,8 @@ void OMXCodec::onCmdComplete(OMX_COMMANDTYPE cmd, OMX_U32 data) {
             CODEC_LOGV("PORT_DISABLED(%u)", portIndex);
 
             if (mState != EXECUTING && mState != RECONFIGURING) {
-                   return;
+                CODEC_LOGE("Error : mState must be EXECUTING or RECONFIGURING while PORT DISABLE(%ld)", portIndex);
+                return;
             }
             CHECK_EQ((int)mPortStatus[portIndex], (int)DISABLING);
             CHECK_EQ(mPortBuffers[portIndex].size(), 0u);
@@ -2443,7 +2444,8 @@ void OMXCodec::onCmdComplete(OMX_COMMANDTYPE cmd, OMX_U32 data) {
             CODEC_LOGV("PORT_ENABLED(%u)", portIndex);
 
             if (mState != EXECUTING && mState != RECONFIGURING) {
-                   return;
+                CODEC_LOGE("mState must be EXECUTING or RECONFIGURING while PORT ENABLE (%ld)", portIndex);
+                return;
             }
             CHECK_EQ((int)mPortStatus[portIndex], (int)ENABLING);
 
@@ -2758,8 +2760,11 @@ bool OMXCodec::flushPortAsync(OMX_U32 portIndex) {
 }
 
 void OMXCodec::disablePortAsync(OMX_U32 portIndex) {
-    CHECK(mState == EXECUTING || mState == RECONFIGURING);
 
+    if (mState != EXECUTING && mState != RECONFIGURING) {
+        CODEC_LOGE("mState must be EXECUTING or RECONFIGURING while disablePortAsync (%ld)", portIndex);
+        return;
+    }
     CHECK_EQ((int)mPortStatus[portIndex], (int)ENABLED);
     mPortStatus[portIndex] = DISABLING;
 
@@ -2772,8 +2777,10 @@ void OMXCodec::disablePortAsync(OMX_U32 portIndex) {
 }
 
 status_t OMXCodec::enablePortAsync(OMX_U32 portIndex) {
-    CHECK(mState == EXECUTING || mState == RECONFIGURING);
-
+    if (mState != EXECUTING && mState != RECONFIGURING) {
+        CODEC_LOGE("mState must be EXECUTING or RECONFIGURING while enablePortAsync(%ld)", portIndex);
+        return UNKNOWN_ERROR;
+    }
     CHECK_EQ((int)mPortStatus[portIndex], (int)DISABLED);
     mPortStatus[portIndex] = ENABLING;
 
@@ -2809,7 +2816,10 @@ void OMXCodec::fillOutputBuffers() {
 }
 
 void OMXCodec::drainInputBuffers() {
-    CHECK(mState == EXECUTING || mState == RECONFIGURING);
+    if (mState != EXECUTING && mState != RECONFIGURING) {
+        CODEC_LOGE("mState must be EXECUTING or RECONFIGURING while drainInputBuffers\n");
+        return;
+    }
 
     if (mFlags & kUseSecureInputBuffers) {
         Vector<BufferInfo> *buffers = &mPortBuffers[kPortIndexInput];
@@ -3738,6 +3748,7 @@ status_t OMXCodec::read(
     Mutex::Autolock autoLock(mLock);
 
     if (mState != EXECUTING && mState != RECONFIGURING) {
+        CODEC_LOGE("mState must be EXECUTING or RECONFIGURING while read\n");
         return UNKNOWN_ERROR;
     }
 
