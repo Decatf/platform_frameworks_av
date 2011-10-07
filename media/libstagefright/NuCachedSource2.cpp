@@ -480,7 +480,7 @@ void NuCachedSource2::onRead(const sp<AMessage> &msg) {
 
 void NuCachedSource2::restartPrefetcherIfNecessary_l(
         bool ignoreLowWaterThreshold, bool force) {
-    static const size_t kGrayArea = 1024 * 1024;
+    static const size_t kGrayArea = 6 * 1024 * 1024;
 
     if (mFetching || (mFinalStatus != OK && mNumRetriesLeft == 0)) {
         return;
@@ -507,6 +507,7 @@ void NuCachedSource2::restartPrefetcherIfNecessary_l(
 
     ALOGI("restarting prefetcher, totalSize = %zu", mCache->totalSize());
     mFetching = true;
+    (new AMessage(kWhatFetchMore, mReflector->id()))->post(0);
 }
 
 ssize_t NuCachedSource2::readAt(off64_t offset, void *data, size_t size) {
@@ -527,6 +528,7 @@ ssize_t NuCachedSource2::readAt(off64_t offset, void *data, size_t size) {
         mCache->copy(delta, data, size);
 
         mLastAccessPos = offset + size;
+        restartPrefetcherIfNecessary_l();
 
         return size;
     }
@@ -644,6 +646,11 @@ ssize_t NuCachedSource2::readInternal(off64_t offset, void *data, size_t size) {
     }
 
     ALOGV("deferring read");
+    if (!mFetching)
+    {
+       mLastAccessPos = offset;
+       restartPrefetcherIfNecessary_l(true);
+    }
 
     return -EAGAIN;
 }

@@ -369,6 +369,8 @@ private:
 
     AwesomePlayer(const AwesomePlayer &);
     AwesomePlayer &operator=(const AwesomePlayer &);
+
+    uint32_t mDataSourceFlags;
 };
 
 }  // namespace android

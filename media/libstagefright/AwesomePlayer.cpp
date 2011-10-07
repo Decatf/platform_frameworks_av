@@ -374,6 +374,8 @@ status_t AwesomePlayer::setDataSource_l(
         return UNKNOWN_ERROR;
     }
 
+    mDataSourceFlags = dataSource->flags();
+
     if (extractor->getDrmFlag()) {
         checkDrmStatus(dataSource);
     }
@@ -1359,6 +1361,8 @@ void AwesomePlayer::shutdownVideoDecoder_l() {
     }
     IPCThreadState::self()->flushCommands();
     ALOGV("video decoder shutdown completed");
+
+    mDataSourceFlags = 0;
 }
 
 status_t AwesomePlayer::setNativeWindow_l(const sp<ANativeWindow> &native) {
@@ -1780,7 +1784,9 @@ void AwesomePlayer::onVideoEvent() {
             mVideoBuffer = NULL;
         }
 
-        if (mSeeking == SEEK && isStreamingHTTP() && mAudioSource != NULL
+        bool streaming = isStreamingHTTP() ||
+                         (mDataSourceFlags & DataSource::kIsCachingDataSource);
+        if (mSeeking == SEEK && streaming && mAudioSource != NULL
                 && !(mFlags & SEEK_PREVIEW)) {
             // We're going to seek the video source first, followed by
             // the audio source.
@@ -2390,6 +2396,7 @@ status_t AwesomePlayer::finishSetDataSource_l() {
     if (dataSource == NULL) {
         return UNKNOWN_ERROR;
     }
+    mDataSourceFlags = dataSource->flags();
 
     sp<MediaExtractor> extractor;
 
