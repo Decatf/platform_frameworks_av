@@ -193,6 +193,7 @@ NuCachedSource2::NuCachedSource2(
       mFetching(true),
       mDisconnecting(false),
       mLastFetchTimeUs(-1),
+      mFetchMoreCount(1),
       mNumRetriesLeft(kMaxNumRetries),
       mHighwaterThresholdBytes(kDefaultHighWaterThreshold),
       mLowwaterThresholdBytes(kDefaultLowWaterThreshold),
@@ -424,6 +425,12 @@ void NuCachedSource2::onFetch() {
                 static_cast<HTTPBase *>(mSource.get())->disconnect();
                 mFinalStatus = -EAGAIN;
             }
+
+            if (mFetchMoreCount > 1)
+            {
+                mFetchMoreCount--;
+                return;
+            }
         }
     } else {
         Mutex::Autolock autoLock(mLock);
@@ -505,8 +512,10 @@ void NuCachedSource2::restartPrefetcherIfNecessary_l(
     size_t actualBytes = mCache->releaseFromStart(maxBytes);
     mCacheOffset += actualBytes;
 
-    ALOGI("restarting prefetcher, totalSize = %zu", mCache->totalSize());
+    LOGI("restarting prefetcher, totalSize = %d, pos = %lld",
+         mCache->totalSize(), mCacheOffset);
     mFetching = true;
+    mFetchMoreCount++;
     (new AMessage(kWhatFetchMore, mReflector->id()))->post(0);
 }
 
@@ -671,6 +680,12 @@ status_t NuCachedSource2::seekInternal_l(off64_t offset) {
     CHECK_EQ(mCache->releaseFromStart(totalSize), totalSize);
 
     mNumRetriesLeft = kMaxNumRetries;
+    if (!mFetching)
+    {
+        mFetching = true;
+        mFetchMoreCount++;
+        (new AMessage(kWhatFetchMore, mReflector->id()))->post(0);
+    }
     mFetching = true;
 
     return OK;
