@@ -75,6 +75,14 @@ LOCAL_C_INCLUDES += \
 
 LOCAL_CFLAGS += -Wall -Wextra
 
+ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
+    LOCAL_CFLAGS += -DCAMERA_MSG_MGMT
+endif
+
+ifeq ($(BOARD_CAMERA_MSG_MGMT),true)
+    LOCAL_CFLAGS += -DCAMERA_MSG_MGMT
+endif
+
 LOCAL_MODULE:= libcameraservice
 
 include $(BUILD_SHARED_LIBRARY)
