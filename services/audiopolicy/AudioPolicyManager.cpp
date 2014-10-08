@@ -246,6 +246,13 @@ status_t AudioPolicyManager::setDeviceConnectionState(audio_devices_t device,
 
             // register new device as available
             index = mAvailableOutputDevices.add(devDesc);
+
+            if (audio_is_a2dp_device(device)) {
+               AudioParameter param;
+               param.add(String8("a2dp_connected"), String8("true"));
+               mpClientInterface->setParameters(0, param.toString());
+            }
+
             if (index >= 0) {
                 sp<HwModule> module = getModuleForDevice(device);
                 if (module == 0) {
@@ -286,6 +293,12 @@ status_t AudioPolicyManager::setDeviceConnectionState(audio_devices_t device,
 
             // remove device from available output devices
             mAvailableOutputDevices.remove(devDesc);
+
+            if (audio_is_a2dp_device(device)) {
+               AudioParameter param;
+               param.add(String8("a2dp_connected"), String8("false"));
+               mpClientInterface->setParameters(0, param.toString());
+            }
 
             checkOutputsForDevice(devDesc, state, outputs, address);
             } break;
@@ -3321,7 +3334,7 @@ status_t AudioPolicyManager::checkOutputsForDevice(const sp<DeviceDescriptor> de
         }
 
         if (profiles.isEmpty()) {
-            ALOGW("checkOutputsForDevice(): No output available for device %04x", device);
+            ALOGE("checkOutputsForDevice(): No output available for device %04x", device);
             return BAD_VALUE;
         }
     } else { // Disconnect
@@ -3740,8 +3753,11 @@ audio_io_handle_t AudioPolicyManager::getA2dpOutput()
             return mOutputs.keyAt(i);
         }
     }
-
-    return 0;
+    DeviceVector deviceList = mAvailableOutputDevices.getDevicesFromType(AUDIO_DEVICE_OUT_ALL_A2DP);
+        if (!deviceList.isEmpty()) {
+             return 1;
+        } else
+             return 0;
 }
 
 void AudioPolicyManager::checkA2dpSuspend()
@@ -3804,7 +3820,6 @@ audio_devices_t AudioPolicyManager::getNewOutputDevice(audio_io_handle_t output,
             return outputDesc->device();
         }
     }
-
     // check the following by order of priority to request a routing change if necessary:
     // 1: the strategy enforced audible is active and enforced on the output:
     //      use device for strategy enforced audible
