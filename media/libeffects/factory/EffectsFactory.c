@@ -441,23 +441,30 @@ int EffectGetSubEffects(const effect_uuid_t *uuid, sub_effect_entry_t **pSube,
 
 int init() {
     int hdl;
+    int ret = 0;
 
     if (gInitDone) {
-        return 0;
+        return ret;
     }
 
     pthread_mutex_init(&gLibLock, NULL);
 
-    if (access(AUDIO_EFFECT_VENDOR_CONFIG_FILE, R_OK) == 0) {
+    if ((ret = access(AUDIO_EFFECT_VENDOR_CONFIG_FILE, R_OK)) == 0) {
         loadEffectConfigFile(AUDIO_EFFECT_VENDOR_CONFIG_FILE);
-    } else if (access(AUDIO_EFFECT_DEFAULT_CONFIG_FILE, R_OK) == 0) {
-        loadEffectConfigFile(AUDIO_EFFECT_DEFAULT_CONFIG_FILE);
+    }
+    ALOGW("init() access vendor config: %d", ret);
+
+    if (ret != 0) {
+        if ((ret = access(AUDIO_EFFECT_DEFAULT_CONFIG_FILE, R_OK)) == 0) {
+            loadEffectConfigFile(AUDIO_EFFECT_DEFAULT_CONFIG_FILE);
+        }
+        ALOGW("init() access default config: %d", ret);
     }
 
     updateNumEffects();
     gInitDone = 1;
     ALOGV("init() done");
-    return 0;
+    return ret;
 }
 
 int loadEffectConfigFile(const char *path)

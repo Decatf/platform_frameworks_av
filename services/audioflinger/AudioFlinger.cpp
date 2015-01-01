@@ -2455,6 +2455,8 @@ sp<IEffect> AudioFlinger::createEffect(
                 ALOGW("createEffect() error %d from EffectQueryNumberEffects", lStatus);
                 goto Exit;
             }
+            ALOGW("createEffect() numEffects %d", numEffects);
+            ALOGW("createEffect() searching for %s", desc.name);
             for (uint32_t i = 0; i < numEffects; i++) {
                 lStatus = EffectQueryEffect(i, &desc);
                 if (lStatus < 0) {
