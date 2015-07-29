@@ -70,12 +70,6 @@ void OMXMaster::addPlugin(const char *libname) {
     if (createOMXPlugin) {
         addPlugin((*createOMXPlugin)(), handle);
     }
-
-#ifdef TF101_OMX
-    if (handle != NULL && strcmp("libstagefrighthw.so", libname) == 0) {
-        nvomx = handle;
-    }
-#endif
 }
 
 void OMXMaster::addPlugin(OMXPluginBase *plugin, void *handle) {
@@ -130,15 +124,7 @@ void OMXMaster::clearPlugins() {
                 if (destroyOMXPlugin)
                     destroyOMXPlugin(plugin);
                 else
-#ifdef TF101_OMX
-                // deleting the nvidia plugin results in segmentation fault
-                if(handle != nvomx) {
-                    ALOGI("delete plugin: %d key=%x value=%x", i, plugin, handle);
                     delete plugin;
-                }
-#else
-                    delete plugin;
-#endif
 
                 dlclose(handle);
             } else {
@@ -148,10 +134,6 @@ void OMXMaster::clearPlugins() {
             plugin = NULL;
         }
     }
-
-#ifdef TF101_OMX
-    nvomx = NULL;
-#endif
 
     mPluginByComponentName.clear();
     mPlugins.clear();
