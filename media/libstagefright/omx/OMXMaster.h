@@ -54,6 +54,9 @@ private:
     KeyedVector<OMXPluginBase *, void *> mPlugins;
     KeyedVector<String8, OMXPluginBase *> mPluginByComponentName;
     KeyedVector<OMX_COMPONENTTYPE *, OMXPluginBase *> mPluginByInstance;
+#ifdef TF101_OMX
+    void* nvomx;
+#endif
 
     void addVendorPlugin();
     void addUserPlugin();
