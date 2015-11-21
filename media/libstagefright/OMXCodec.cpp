@@ -3076,6 +3076,11 @@ bool OMXCodec::drainInputBuffer(BufferInfo *info) {
             err = mSource->read(&srcBuffer);
         }
 
+        if (err == INFO_DISCONTINUITY) {
+            // currently ignore this
+            continue;
+        }
+
         if (err != OK) {
             signalEOS = true;
             mFinalStatus = err;
