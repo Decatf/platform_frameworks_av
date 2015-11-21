@@ -1447,9 +1447,9 @@ OMXCodec::OMXCodec(
       mSignalledEOS(false),
       mNoMoreOutputData(false),
       mOutputPortSettingsHaveChanged(false),
+      mBuffersWithRenderer(0),
       mPortSettingsEvent(0),
       mEventPortIndex(-1),
-      mBuffersWithRenderer(0),
       mSeekTimeUs(-1),
       mSeekMode(ReadOptions::SEEK_CLOSEST_SYNC),
       mTargetTimeUs(-1),
@@ -2335,11 +2335,11 @@ void OMXCodec::onEvent(OMX_EVENTTYPE event, OMX_U32 data1, OMX_U32 data2) {
                 (OMX_ErrorSameState == (OMX_S32)data1)) {
 
                 // Not to worry about these errors
-                CODEC_LOGE("Don't care ERROR(0x%08lx, %ld)", data1, data2);
+                CODEC_LOGE("Don't care ERROR(0x%08x, %u)", data1, data2);
             }
             else {
 
-                CODEC_LOGE("ERROR(0x%08lx, %ld)", data1, data2);
+                CODEC_LOGE("ERROR(0x%08x, %u)", data1, data2);
                 setState(ERROR);
             }
             break;
@@ -2440,7 +2440,7 @@ void OMXCodec::onCmdComplete(OMX_COMMANDTYPE cmd, OMX_U32 data) {
             CODEC_LOGV("PORT_DISABLED(%u)", portIndex);
 
             if (mState != EXECUTING && mState != RECONFIGURING) {
-                CODEC_LOGE("Error : mState must be EXECUTING or RECONFIGURING while PORT DISABLE(%ld)", portIndex);
+                CODEC_LOGE("Error : mState must be EXECUTING or RECONFIGURING while PORT DISABLE(%u)", portIndex);
                 return;
             }
             CHECK_EQ((int)mPortStatus[portIndex], (int)DISABLING);
@@ -2490,7 +2490,7 @@ void OMXCodec::onCmdComplete(OMX_COMMANDTYPE cmd, OMX_U32 data) {
             CODEC_LOGV("PORT_ENABLED(%u)", portIndex);
 
             if (mState != EXECUTING && mState != RECONFIGURING) {
-                CODEC_LOGE("mState must be EXECUTING or RECONFIGURING while PORT ENABLE (%ld)", portIndex);
+                CODEC_LOGE("mState must be EXECUTING or RECONFIGURING while PORT ENABLE (%u)", portIndex);
                 return;
             }
             CHECK_EQ((int)mPortStatus[portIndex], (int)ENABLING);
@@ -2852,7 +2852,7 @@ bool OMXCodec::flushPortAsync(OMX_U32 portIndex) {
 void OMXCodec::disablePortAsync(OMX_U32 portIndex) {
 
     if (mState != EXECUTING && mState != RECONFIGURING) {
-        CODEC_LOGE("mState must be EXECUTING or RECONFIGURING while disablePortAsync (%ld)", portIndex);
+        CODEC_LOGE("mState must be EXECUTING or RECONFIGURING while disablePortAsync (%u)", portIndex);
         return;
     }
     CHECK_EQ((int)mPortStatus[portIndex], (int)ENABLED);
@@ -2868,7 +2868,7 @@ void OMXCodec::disablePortAsync(OMX_U32 portIndex) {
 
 status_t OMXCodec::enablePortAsync(OMX_U32 portIndex) {
     if (mState != EXECUTING && mState != RECONFIGURING) {
-        CODEC_LOGE("mState must be EXECUTING or RECONFIGURING while enablePortAsync(%ld)", portIndex);
+        CODEC_LOGE("mState must be EXECUTING or RECONFIGURING while enablePortAsync(%u)", portIndex);
         return UNKNOWN_ERROR;
     }
     CHECK_EQ((int)mPortStatus[portIndex], (int)DISABLED);
