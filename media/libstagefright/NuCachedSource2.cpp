@@ -512,11 +512,11 @@ void NuCachedSource2::restartPrefetcherIfNecessary_l(
     size_t actualBytes = mCache->releaseFromStart(maxBytes);
     mCacheOffset += actualBytes;
 
-    LOGI("restarting prefetcher, totalSize = %d, pos = %lld",
+    ALOGI("restarting prefetcher, totalSize = %d, pos = %lld",
          mCache->totalSize(), mCacheOffset);
     mFetching = true;
     mFetchMoreCount++;
-    (new AMessage(kWhatFetchMore, mReflector->id()))->post(0);
+    (new AMessage(kWhatFetchMore, mReflector))->post(0);
 }
 
 ssize_t NuCachedSource2::readAt(off64_t offset, void *data, size_t size) {
@@ -684,7 +684,7 @@ status_t NuCachedSource2::seekInternal_l(off64_t offset) {
     {
         mFetching = true;
         mFetchMoreCount++;
-        (new AMessage(kWhatFetchMore, mReflector->id()))->post(0);
+        (new AMessage(kWhatFetchMore, mReflector))->post(0);
     }
     mFetching = true;
 
