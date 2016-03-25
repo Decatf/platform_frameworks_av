@@ -144,7 +144,8 @@ struct ADebug {
         if (!strcmp(name, "legacy-adaptive")) {
             return getExperimentFlag(allow, name, 2, 1); // every other day
         } else if (!strcmp(name, "legacy-setsurface")) {
-            return getExperimentFlag(allow, name, 3, 1); // every third day
+            // return getExperimentFlag(allow, name, 3, 1); // every third day
+            return true;
         } else {
             ALOGE("unknown experiment '%s' (disabled)", name);
         }
