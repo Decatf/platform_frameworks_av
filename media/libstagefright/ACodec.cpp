@@ -974,23 +974,25 @@ status_t ACodec::configureOutputBuffersFromNativeWindow(
     // 2. try to allocate two (2) additional buffers to reduce starvation from
     //    the consumer
     //    plus an extra buffer to account for incorrect minUndequeuedBufs
-    for (OMX_U32 extraBuffers = 2 + 1; /* condition inside loop */; extraBuffers--) {
-        OMX_U32 newBufferCount =
-            def.nBufferCountMin + *minUndequeuedBuffers + extraBuffers;
-        def.nBufferCountActual = newBufferCount;
-        err = mOMX->setParameter(
-                mNode, OMX_IndexParamPortDefinition, &def, sizeof(def));
+    if (def.nBufferCountActual < def.nBufferCountMin + *minUndequeuedBuffers) {
+        for (OMX_U32 extraBuffers = 0; /* condition inside loop */; extraBuffers--) {
+            OMX_U32 newBufferCount =
+                def.nBufferCountMin + *minUndequeuedBuffers + extraBuffers;
+            def.nBufferCountActual = newBufferCount;
+            err = mOMX->setParameter(
+                    mNode, OMX_IndexParamPortDefinition, &def, sizeof(def));
 
-        if (err == OK) {
-            *minUndequeuedBuffers += extraBuffers;
-            break;
-        }
+            if (err == OK) {
+                *minUndequeuedBuffers += extraBuffers;
+                break;
+            }
 
-        ALOGW("[%s] setting nBufferCountActual to %u failed: %d",
-                mComponentName.c_str(), newBufferCount, err);
-        /* exit condition */
-        if (extraBuffers == 0) {
-            return err;
+            ALOGW("[%s] setting nBufferCountActual to %u failed: %d",
+                    mComponentName.c_str(), newBufferCount, err);
+            /* exit condition */
+            if (extraBuffers == 0) {
+                return err;
+            }
         }
     }
 

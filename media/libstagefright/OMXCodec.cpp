@@ -1813,23 +1813,25 @@ status_t OMXCodec::allocateOutputBuffersFromNativeWindow() {
     CODEC_LOGI("OMX-buffers: min=%u actual=%u undeq=%d+1",
             def.nBufferCountMin, def.nBufferCountActual, minUndequeuedBufs);
 
-    for (OMX_U32 extraBuffers = 2 + 1; /* condition inside loop */; extraBuffers--) {
-        OMX_U32 newBufferCount =
-            def.nBufferCountMin + minUndequeuedBufs + extraBuffers;
-        def.nBufferCountActual = newBufferCount;
-        err = mOMX->setParameter(
-                mNode, OMX_IndexParamPortDefinition, &def, sizeof(def));
+    if (def.nBufferCountActual < def.nBufferCountMin + minUndequeuedBufs) {
+        for (OMX_U32 extraBuffers = 0; /* condition inside loop */; extraBuffers--) {
+            OMX_U32 newBufferCount =
+                def.nBufferCountMin + minUndequeuedBufs + extraBuffers;
+            def.nBufferCountActual = newBufferCount;
+            err = mOMX->setParameter(
+                    mNode, OMX_IndexParamPortDefinition, &def, sizeof(def));
 
-        if (err == OK) {
-            minUndequeuedBufs += extraBuffers;
-            break;
-        }
+            if (err == OK) {
+                minUndequeuedBufs += extraBuffers;
+                break;
+            }
 
-        CODEC_LOGW("setting nBufferCountActual to %u failed: %d",
-                newBufferCount, err);
-        /* exit condition */
-        if (extraBuffers == 0) {
-            return err;
+            CODEC_LOGW("setting nBufferCountActual to %u failed: %d",
+                    newBufferCount, err);
+            /* exit condition */
+            if (extraBuffers == 0) {
+                return err;
+            }
         }
     }
     CODEC_LOGI("OMX-buffers: min=%u actual=%u undeq=%d+1",
