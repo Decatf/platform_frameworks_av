@@ -207,6 +207,12 @@ bool MuxOMX::isLocalNode_l(node_id node) const {
 // static
 MuxOMX::node_location MuxOMX::getPreferredCodecLocation(const char *name) {
     if (sCodecProcessEnabled) {
+
+        // Tegra ICS codecs fail to allocate input/output buffers when located in CODECPROCESS
+        if (!strncasecmp(name, "OMX.Nvidia.", 11)) {
+            return MEDIAPROCESS;
+        }
+
         // all codecs go to codec process unless excluded using system property, in which case
         // all non-secure decoders, OMX.google.* codecs and encoders can go in the codec process
         // (non-OMX.google.* encoders can be excluded using system property.)
