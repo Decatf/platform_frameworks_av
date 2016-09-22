@@ -2928,6 +2928,10 @@ status_t ACodec::setupRawAudioFormat(
             pcmParams.eNumData = OMX_NumericalDataSigned;
             pcmParams.nBitPerSample = 16;
             break;
+        case kAudioEncodingPcm24bitPacked:
+            pcmParams.eNumData = OMX_NumericalDataSigned;
+            pcmParams.nBitPerSample = 24;
+            break;
         default:
             return BAD_VALUE;
     }
@@ -4932,6 +4936,9 @@ status_t ACodec::getPortFormat(OMX_U32 portIndex, sp<AMessage> &notify) {
                     } else if (params.eNumData == OMX_NumericalDataFloat
                             && params.nBitPerSample == 32u) {
                         encoding = kAudioEncodingPcmFloat;
+                    } else if (params.eNumData == OMX_NumericalDataSigned
+                            && params.nBitPerSample == 24u) {
+                        encoding = kAudioEncodingPcm24bitPacked;
                     } else if (params.nBitPerSample != 16u
                             || params.eNumData != OMX_NumericalDataSigned) {
                         ALOGE("unsupported PCM port: %s(%d), %s(%d) mode ",
@@ -4940,8 +4947,6 @@ status_t ACodec::getPortFormat(OMX_U32 portIndex, sp<AMessage> &notify) {
                         return FAILED_TRANSACTION;
                     }
                     notify->setInt32("pcm-encoding", encoding);
-
-                    notify->setInt32("bit-width", params.nBitPerSample);
 
                     if (mChannelMaskPresent) {
                         notify->setInt32("channel-mask", mChannelMask);
@@ -5224,7 +5229,7 @@ void ACodec::onOutputFormatChanged(sp<const AMessage> expectedFormat) {
         AudioEncoding pcmEncoding = kAudioEncodingPcm16bit;
         (void)mConfigFormat->findInt32("pcm-encoding", (int32_t*)&pcmEncoding);
         AudioEncoding codecPcmEncoding = kAudioEncodingPcm16bit;
-        (void)mOutputFormat->findInt32("pcm-encoding", (int32_t*)&pcmEncoding);
+        (void)mOutputFormat->findInt32("pcm-encoding", (int32_t*)&codecPcmEncoding);
 
         mConverter[kPortIndexOutput] = AudioConverter::Create(codecPcmEncoding, pcmEncoding);
         if (mConverter[kPortIndexOutput] != NULL) {
