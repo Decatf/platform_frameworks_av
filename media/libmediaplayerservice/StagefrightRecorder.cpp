@@ -1436,6 +1436,8 @@ status_t StagefrightRecorder::setupMediaSource(
 
 status_t StagefrightRecorder::setupCameraSource(
         sp<CameraSource> *cameraSource) {
+    ALOGE("StagefrightRecorder::setupCameraSource");
+
     status_t err = OK;
     if ((err = checkVideoEncoderCapabilities()) != OK) {
         return err;
@@ -1444,6 +1446,8 @@ status_t StagefrightRecorder::setupCameraSource(
     videoSize.width = mVideoWidth;
     videoSize.height = mVideoHeight;
     if (mCaptureFpsEnable) {
+        ALOGE("StagefrightRecorder::setupCameraSource() mCaptureFpsEnable");
+
         if (mTimeBetweenCaptureUs < 0) {
             ALOGE("Invalid mTimeBetweenTimeLapseFrameCaptureUs value: %lld",
                     (long long)mTimeBetweenCaptureUs);
@@ -1456,10 +1460,11 @@ status_t StagefrightRecorder::setupCameraSource(
                 mTimeBetweenCaptureUs);
         *cameraSource = mCameraSourceTimeLapse;
     } else {
+        ALOGE("StagefrightRecorder::setupCameraSource() !mCaptureFpsEnable");
         *cameraSource = CameraSource::CreateFromCamera(
                 mCamera, mCameraProxy, mCameraId, mClientName, mClientUid, mClientPid,
                 videoSize, mFrameRate,
-                mPreviewSurface);
+                mPreviewSurface, false);
     }
     mCamera.clear();
     mCameraProxy.clear();
