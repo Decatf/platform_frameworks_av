@@ -73,7 +73,7 @@ struct AVFactory {
             Size videoSize,
             int32_t frameRate,
             const sp<IGraphicBufferProducer>& surface,
-            bool storeMetaDataInVideoBuffers = true);
+            bool storeMetaDataInVideoBuffers = false);
 
     virtual CameraSourceTimeLapse *CreateCameraSourceTimeLapseFromCamera(
             const sp<hardware::ICamera> &camera,
@@ -86,7 +86,7 @@ struct AVFactory {
             int32_t videoFrameRate,
             const sp<IGraphicBufferProducer>& surface,
             int64_t timeBetweenFrameCaptureUs,
-            bool storeMetaDataInVideoBuffers = true);
+            bool storeMetaDataInVideoBuffers = false);
       virtual AudioSource* createAudioSource(
             audio_source_t inputSource,
             const String16 &opPackageName,
