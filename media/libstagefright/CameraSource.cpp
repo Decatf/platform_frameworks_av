@@ -147,6 +147,8 @@ static int32_t getColorFormat(const char* colorFormat) {
 }
 
 CameraSource *CameraSource::Create(const String16 &clientName) {
+    ALOGE("CameraSource::Create");
+
     Size size;
     size.width = -1;
     size.height = -1;
@@ -168,6 +170,8 @@ CameraSource *CameraSource::CreateFromCamera(
     int32_t frameRate,
     const sp<IGraphicBufferProducer>& surface,
     bool storeMetaDataInVideoBuffers) {
+
+    ALOGE("CameraSource::CreateFromCamera() storeMetaDataInVideoBuffers(%d)", storeMetaDataInVideoBuffers);
 
     CameraSource *source = new CameraSource(camera, proxy, cameraId,
             clientName, clientUid, clientPid, videoSize, frameRate, surface,
@@ -342,9 +346,13 @@ status_t CameraSource::configureCamera(
             ALOGE("Video dimension (%dx%d) is unsupported", width, height);
             return BAD_VALUE;
         }
+        ALOGE("Video dimension (%dx%d)", width, height);
+
         if (isSetVideoSizeSupportedByCamera) {
+            ALOGE("setVideoSize(%dx%d)", width, height);
             params->setVideoSize(width, height);
         } else {
+            ALOGE("setPreviewSize(%dx%d)", width, height);
             params->setPreviewSize(width, height);
         }
         isCameraParamChanged = true;
@@ -357,6 +365,7 @@ status_t CameraSource::configureCamera(
     } else {  // width == -1 && height == -1
         // Do not configure the camera.
         // Use the current width and height value setting from the camera.
+        ALOGE("Do not configure the camera.");
     }
 
     if (frameRate != -1) {
@@ -604,6 +613,7 @@ status_t CameraSource::initWithCameraAccess(
         int32_t frameRate,
         bool storeMetaDataInVideoBuffers) {
     ALOGV("initWithCameraAccess");
+    ALOGV("\tstoreMetaDataInVideoBuffers: (%d)", storeMetaDataInVideoBuffers);
     status_t err = OK;
 
     if ((err = isCameraAvailable(camera, proxy, cameraId,
