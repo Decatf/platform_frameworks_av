@@ -28,6 +28,7 @@
 #include <binder/MemoryDealer.h>
 #include <media/IMediaHTTPService.h>
 #include <media/IMediaCodecService.h>
+#include <media/IMediaPlayerService.h>
 #include <media/stagefright/foundation/ADebug.h>
 #include <media/stagefright/foundation/ALooper.h>
 #include <media/stagefright/DataSource.h>
@@ -57,9 +58,14 @@ status_t Harness::initCheck() const {
 
 status_t Harness::initOMX() {
     sp<IServiceManager> sm = defaultServiceManager();
-    sp<IBinder> binder = sm->getService(String16("media.codec"));
-    sp<IMediaCodecService> service = interface_cast<IMediaCodecService>(binder);
-    mOMX = service->getOMX();
+    // sp<IBinder> binder = sm->getService(String16("media.codec"));
+    // sp<IMediaCodecService> service = interface_cast<IMediaCodecService>(binder);
+    // mOMX = service->getOMX();
+
+    sp<IBinder> playerbinder = sm->getService(String16("media.player"));
+    sp<IMediaPlayerService> mediaservice = interface_cast<IMediaPlayerService>(playerbinder);
+    mOMX = mediaservice->getOMX();
+
 
     return mOMX != 0 ? OK : NO_INIT;
 }
