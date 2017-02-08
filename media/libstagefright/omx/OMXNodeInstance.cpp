@@ -2016,6 +2016,13 @@ bool OMXNodeInstance::handleMessage(omx_message &msg) {
         BufferMeta *buffer_meta =
             static_cast<BufferMeta *>(buffer->pAppPrivate);
 
+        if (buffer->nAllocLen == 0 && buffer->nFilledLen != 0) {
+            ALOGV("handleMessage: buffer->nOffset, buffer->nFilledLen, buffer->nAllocLen %d %d %d",
+                buffer->nOffset, buffer->nFilledLen, buffer->nAllocLen);
+            memmove(&buffer->nAllocLen, &buffer->nFilledLen, sizeof(OMX_U32));
+            ALOGV("handleMessage: Fix up buffer->nAllocLen %d", buffer->nAllocLen);
+        }
+
         if (buffer->nOffset + buffer->nFilledLen < buffer->nOffset
                 || buffer->nOffset + buffer->nFilledLen > buffer->nAllocLen) {
             CLOG_ERROR(onFillBufferDone, OMX_ErrorBadParameter,
