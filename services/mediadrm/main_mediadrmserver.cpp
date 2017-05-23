@@ -18,6 +18,7 @@
 #define LOG_TAG "mediaserver"
 //#define LOG_NDEBUG 0
 
+#include <dlfcn.h>
 #include <fcntl.h>
 #include <sys/prctl.h>
 #include <sys/wait.h>
@@ -30,8 +31,14 @@
 
 using namespace android;
 
+#define LIBJAUNT "/system/lib/libjaunt.so"
+
 int main()
 {
+	if(access(LIBJAUNT, F_OK) != -1) {
+	    dlopen(LIBJAUNT, RTLD_NOW | RTLD_LOCAL);
+	}
+
     signal(SIGPIPE, SIG_IGN);
 
     sp<ProcessState> proc(ProcessState::self());
