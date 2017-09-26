@@ -26,6 +26,7 @@
 
 #include <binder/IServiceManager.h>
 #include <media/IMediaCodecService.h>
+#include <media/IMediaPlayerService.h>
 #include <media/stagefright/OMXClient.h>
 
 #include <media/IOMX.h>
@@ -69,18 +70,32 @@ status_t OMXClient::connect(const char* name, bool* trebleFlag) {
 
 status_t OMXClient::connectLegacy() {
     sp<IServiceManager> sm = defaultServiceManager();
-    sp<IBinder> codecbinder = sm->getService(String16("media.codec"));
-    sp<IMediaCodecService> codecservice = interface_cast<IMediaCodecService>(codecbinder);
 
-    if (codecservice.get() == NULL) {
-        ALOGE("Cannot obtain IMediaCodecService");
-        return NO_INIT;
-    }
 
-    mOMX = codecservice->getOMX();
-    if (mOMX.get() == NULL) {
-        ALOGE("Cannot obtain mediacodec IOMX");
-        return NO_INIT;
+    if (!property_get_bool("persist.media.mediaplayer_omx", true)) {
+        sp<IBinder> codecbinder = sm->getService(String16("media.codec"));
+        sp<IMediaCodecService> codecservice = interface_cast<IMediaCodecService>(codecbinder);
+
+        if (codecservice.get() == NULL) {
+            ALOGE("Cannot obtain IMediaCodecService");
+            return NO_INIT;
+        }
+
+        mOMX = codecservice->getOMX();
+        if (mOMX.get() == NULL) {
+            ALOGE("Cannot obtain mediacodec IOMX");
+            return NO_INIT;
+        }
+    } else {
+        sp<IServiceManager> sm = defaultServiceManager();
+        sp<IBinder> playerbinder = sm->getService(String16("media.player"));
+        sp<IMediaPlayerService> mediaservice = interface_cast<IMediaPlayerService>(playerbinder);
+        mOMX = mediaservice->getOMX();
+
+        if (mOMX.get() == NULL) {
+            ALOGE("Cannot obtain mediaplayer IOMX");
+            return NO_INIT;
+        }
     }
 
     return OK;
