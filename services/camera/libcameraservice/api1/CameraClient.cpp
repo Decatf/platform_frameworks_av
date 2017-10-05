@@ -30,12 +30,6 @@ namespace android {
 #define LOG1(...) ALOGD_IF(gLogLevel >= 1, __VA_ARGS__);
 #define LOG2(...) ALOGD_IF(gLogLevel >= 2, __VA_ARGS__);
 
-#ifdef METADATA_CAMERA_SOURCE
-#define METADATA_TYPE kMetadataBufferTypeCameraSource
-#else
-#define METADATA_TYPE kMetadataBufferTypeNativeHandleSource
-#endif
-
 static int getCallingPid() {
     return IPCThreadState::self()->getCallingPid();
 }
@@ -522,7 +516,7 @@ void CameraClient::releaseRecordingFrameHandle(native_handle_t *handle) {
     }
 
     VideoNativeHandleMetadata *metadata = (VideoNativeHandleMetadata*)(dataPtr->pointer());
-    metadata->eType = METADATA_TYPE;
+    metadata->eType = kMetadataBufferTypeNativeHandleSource;
     metadata->pHandle = handle;
 
     mHardware->releaseRecordingFrame(dataPtr);
@@ -976,7 +970,7 @@ void CameraClient::handleGenericDataTimestamp(nsecs_t timestamp,
         if (dataPtr->size() == sizeof(VideoNativeHandleMetadata)) {
             VideoNativeHandleMetadata *metadata =
                 (VideoNativeHandleMetadata*)(dataPtr->pointer());
-            if (metadata->eType == METADATA_TYPE) {
+            if (metadata->eType == kMetadataBufferTypeNativeHandleSource) {
                 handle = metadata->pHandle;
             }
         }
